@@ -1,72 +1,82 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html lang="ko">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | CardRpgTower</title>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="screen-orientation" content="landscape">
+    <title>CardRpgTower</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      /* 카드RPG 타워 웹 페이지. 게임은 늘 16:9로 화면 안에 맞추고(남는 곳은 검은 띠),
+         폰을 세로로 들면 가로로 돌리라는 안내를 띄운다(2026-10-14 영택 요청). */
+      html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden;
+                   font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #e8dcc0;
+                   -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+      #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+      #unity-canvas { display: block; background: #0b0a0f; touch-action: none; }
+      #loading { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(360px, 70vw); text-align: center; }
+      #loading .title { font-size: 22px; letter-spacing: 2px; margin-bottom: 14px; }
+      #loading .bar { height: 10px; border: 1px solid #8a7444; border-radius: 6px; overflow: hidden; background: #1a1610; }
+      #loading .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #8a6a2c, #e8c46a); transition: width .2s; }
+      #loading .pct { margin-top: 8px; font-size: 13px; opacity: .75; }
+      #fullscreen { position: fixed; right: 10px; bottom: 10px; width: 36px; height: 36px; border-radius: 6px; border: 1px solid #8a7444;
+                    background: rgba(0,0,0,.55) center/20px no-repeat; color: #e8c46a; font-size: 20px; line-height: 34px; text-align: center;
+                    cursor: pointer; display: none; z-index: 5; }
+      #rotate { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center;
+                gap: 18px; background: rgba(0,0,0,.92); text-align: center; padding: 24px; box-sizing: border-box; }
+      #rotate .phone { width: 46px; height: 76px; border: 3px solid #e8c46a; border-radius: 9px; animation: turn 2.2s ease-in-out infinite; }
+      @keyframes turn { 0%, 25% { transform: rotate(0deg); } 55%, 100% { transform: rotate(-90deg); } }
+      #rotate .msg { font-size: 19px; line-height: 1.6; }
+      #rotate button { font: inherit; font-size: 17px; color: #1a1206; background: linear-gradient(#f0d48a, #c49a45); border: 0;
+                       border-radius: 8px; padding: 12px 22px; }
+      #rotate .skip { font-size: 14px; opacity: .6; text-decoration: underline; cursor: pointer; }
+    </style>
   </head>
   <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=1600 height=900 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">CardRpgTower</div>
-      </div>
+    <div id="stage"><canvas id="unity-canvas" width="1600" height="900" tabindex="-1"></canvas></div>
+    <div id="loading"><div class="title">CardRpgTower</div><div class="bar"><div class="fill"></div></div><div class="pct">불러오는 중…</div></div>
+    <div id="fullscreen" title="전체 화면">⛶</div>
+    <div id="rotate">
+      <div class="phone"></div>
+      <div class="msg">가로 화면 전용 게임입니다.<br>휴대폰을 가로로 돌려 주세요.</div>
+      <button id="rotate-go">가로 전체 화면으로 하기</button>
+      <div class="skip" id="rotate-skip">세로로 그냥 보기</div>
     </div>
     <script>
       var canvas = document.querySelector("#unity-canvas");
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+      var rotateSkipped = false;
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
+      // 16:9를 지키며 화면 안에 가장 크게. 가로·세로 어느 쪽이 남든 검은 띠로 채운다.
+      function fit() {
+        var vw = window.innerWidth, vh = window.innerHeight;
+        var w = Math.min(vw, vh * 16 / 9);
+        canvas.style.width = Math.floor(w) + "px";
+        canvas.style.height = Math.floor(w * 9 / 16) + "px";
+        var portrait = isMobile && vh > vw;
+        document.querySelector("#rotate").style.display = portrait && !rotateSkipped ? "flex" : "none";
+        if (!portrait) rotateSkipped = false;
       }
+      window.addEventListener("resize", fit);
+      window.addEventListener("orientationchange", function () { setTimeout(fit, 250); });
+      fit();
+
+      function goFullscreen() {
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen;
+        var p = req ? req.call(el) : null;
+        // 안드로이드 크롬 등은 전체 화면일 때 가로 고정이 된다. iOS 사파리는 지원하지 않아 안내만 남는다.
+        var lock = function () { if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(function () {}); };
+        if (p && p.then) p.then(lock).catch(function () {}); else lock();
+      }
+      document.querySelector("#rotate-go").onclick = goFullscreen;
+      document.querySelector("#rotate-skip").onclick = function () { rotateSkipped = true; fit(); };
+      document.querySelector("#fullscreen").onclick = goFullscreen;
 
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/WebGL.loader.js";
-      // 데이터가 크면(GitHub 파일당 100MB 제한) 조각으로 나눠 두고 여기서 이어 붙인다.
-      var dataParts = 4;
-      async function loadSplitData() {
-        if (!dataParts) return;
-        var bar = document.querySelector("#unity-progress-bar-full");
-        var blobs = [];
-        for (var i = 0; i < dataParts; i++) {
-          var r = await fetch(buildUrl + "/WebGL.data.unityweb.part" + i);
-          if (!r.ok) throw new Error("데이터 조각 " + i + " 받기 실패: " + r.status);
-          blobs.push(await r.blob());
-          bar.style.width = (100 * (i + 1) / dataParts) + "%";
-        }
-        config.dataUrl = URL.createObjectURL(new Blob(blobs));
-      }
       var config = {
         cacheControl: function (url) { return url.startsWith("blob:") ? "no-store" : "must-revalidate"; },
         arguments: [],
@@ -77,78 +87,37 @@
         companyName: "DefaultCompany",
         productName: "CardRpgTower",
         productVersion: "1.0",
-        showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
       };
-
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
       config.autoSyncPersistentDataPath = true; // 세이브(run.json)가 새로고침 뒤에도 남게
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
+      if (isMobile) config.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2); // 폰에서 과한 해상도로 느려지지 않게
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        // 창 크기에 맞춰 16:9로 꽉 채운다(고정 크기면 작은 화면에서 잘림).
-        var fit = () => {
-          var w = Math.min(window.innerWidth - 16, (window.innerHeight - 70) * 16 / 9);
-          canvas.style.width = Math.floor(w) + "px";
-          canvas.style.height = Math.floor(w * 9 / 16) + "px";
-        };
-        fit(); window.addEventListener("resize", fit);
+      // 데이터가 크면(GitHub 파일당 100MB 제한) 빌드 뒤 조각으로 나누고 여기서 이어 붙인다. 숫자는 WebBuild가 고친다.
+      var dataParts = 4;
+      var fillEl = document.querySelector("#loading .fill"), pctEl = document.querySelector("#loading .pct");
+      function progress(p, label) { fillEl.style.width = Math.round(p * 100) + "%"; pctEl.textContent = label + " " + Math.round(p * 100) + "%"; }
+      async function loadSplitData() {
+        if (!dataParts) return;
+        var blobs = [];
+        for (var i = 0; i < dataParts; i++) {
+          var r = await fetch(buildUrl + "/WebGL.data.unityweb.part" + i);
+          if (!r.ok) throw new Error("데이터 조각 " + i + " 받기 실패: " + r.status);
+          blobs.push(await r.blob());
+          progress((i + 1) / dataParts, "내려받는 중");
+        }
+        config.dataUrl = URL.createObjectURL(new Blob(blobs));
       }
-
-      document.querySelector("#unity-loading-bar").style.display = "block";
 
       var script = document.createElement("script");
       script.src = loaderUrl;
-      script.onload = async () => {
+      script.onload = async function () {
         try { await loadSplitData(); } catch (e) { alert(e); return; }
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-
-              }).catch((message) => {
-                alert(message);
-              });
-            };
-
+        createUnityInstance(canvas, config, function (p) { progress(p, "준비 중"); }).then(function (unityInstance) {
+          document.querySelector("#loading").style.display = "none";
+          document.querySelector("#fullscreen").style.display = "block";
+          document.querySelector("#fullscreen").onclick = isMobile ? goFullscreen : function () { unityInstance.SetFullscreen(1); };
+        }).catch(function (message) { alert(message); });
+      };
       document.body.appendChild(script);
-
     </script>
   </body>
 </html>
