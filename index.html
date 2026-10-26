@@ -21,9 +21,12 @@
       #loading .bar { height: 10px; border: 1px solid #8a7444; border-radius: 6px; overflow: hidden; background: #1a1610; }
       #loading .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #8a6a2c, #e8c46a); transition: width .2s; }
       #loading .pct { margin-top: 8px; font-size: 13px; opacity: .75; }
-      #fullscreen { position: fixed; right: 10px; bottom: 10px; width: 36px; height: 36px; border-radius: 6px; border: 1px solid #8a7444;
-                    background: rgba(0,0,0,.55) center/20px no-repeat; color: #e8c46a; font-size: 20px; line-height: 34px; text-align: center;
-                    cursor: pointer; display: none; z-index: 5; }
+      /* 화면 네 귀퉁이는 게임 버튼(메뉴·출정·차례 끝·버린 카드)이 쓰므로 왼쪽 가운데 가장자리에 반투명하게 둔다. 전체 화면이면 숨긴다. */
+      #fullscreen { position: fixed; left: 4px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 6px; border: 1px solid #8a7444;
+                    background: rgba(0,0,0,.55); color: #e8c46a; font-size: 17px; line-height: 28px; text-align: center;
+                    cursor: pointer; display: none; z-index: 5; opacity: .45; transition: opacity .2s; }
+      #fullscreen:hover { opacity: 1; }
+      body.full #fullscreen { display: none !important; }
       #rotate { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center;
                 gap: 18px; background: rgba(0,0,0,.92); text-align: center; padding: 24px; box-sizing: border-box; }
       #rotate .phone { width: 46px; height: 76px; border: 3px solid #e8c46a; border-radius: 9px; animation: turn 2.2s ease-in-out infinite; }
@@ -75,6 +78,9 @@
       document.querySelector("#rotate-go").onclick = goFullscreen;
       document.querySelector("#rotate-skip").onclick = function () { rotateSkipped = true; fit(); };
       document.querySelector("#fullscreen").onclick = goFullscreen;
+      function onFull() { document.body.classList.toggle("full", !!(document.fullscreenElement || document.webkitFullscreenElement)); }
+      document.addEventListener("fullscreenchange", onFull);
+      document.addEventListener("webkitfullscreenchange", onFull);
 
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/WebGL.loader.js";
@@ -87,7 +93,7 @@
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Rualiu Games",
         productName: "Black Seal",
-        productVersion: "1.0",
+        productVersion: "0.002",
       };
       config.autoSyncPersistentDataPath = true; // 세이브(run.json)가 새로고침 뒤에도 남게
       if (isMobile) config.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2); // 폰에서 과한 해상도로 느려지지 않게
