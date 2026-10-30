@@ -27,6 +27,11 @@
                     cursor: pointer; display: none; z-index: 5; opacity: .45; transition: opacity .2s; }
       #fullscreen:hover { opacity: 1; }
       body.full #fullscreen { display: none !important; }
+      #reports { position: fixed; left: 4px; top: calc(50% + 22px); width: 30px; height: 30px; border-radius: 6px; border: 1px solid #8a7444;
+                 background: rgba(0,0,0,.55); color: #e8c46a; font-size: 15px; line-height: 28px; text-align: center; text-decoration: none;
+                 z-index: 5; opacity: .45; transition: opacity .2s; }
+      #reports:hover { opacity: 1; }
+      body.full #reports { display: none; }
       #rotate { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center;
                 gap: 18px; background: rgba(0,0,0,.92); text-align: center; padding: 24px; box-sizing: border-box; }
       #rotate .phone { width: 46px; height: 76px; border: 3px solid #e8c46a; border-radius: 9px; animation: turn 2.2s ease-in-out infinite; }
@@ -41,6 +46,7 @@
     <div id="stage"><canvas id="unity-canvas" width="1600" height="900" tabindex="-1"></canvas></div>
     <div id="loading"><div class="title">Black Seal</div><div class="bar"><div class="fill"></div></div><div class="pct">불러오는 중…</div></div>
     <div id="fullscreen" title="전체 화면">⛶</div>
+    <a id="reports" href="reports/" target="_blank" rel="noopener" title="밸런스 보고서">▤</a>
     <div id="rotate">
       <div class="phone"></div>
       <div class="msg">가로 화면 전용 게임입니다.<br>휴대폰을 가로로 돌려 주세요.</div>
