@@ -1054,7 +1054,7 @@ document.querySelectorAll('table').forEach(t=>{
   const j=hs.indexOf('판정'), k=hs.indexOf('4막 완주');
   t.querySelectorAll('tbody tr').forEach(r=>{
     const c=r.children;
-    if(j>=0){const d=c[j];d.classList.add(d.textContent.trim()==='OK'?'ok':'ng');}
+    if(j>=0){const d=c[j];d.classList.add(d.textContent.trim().startsWith('OK')?'ok':'ng');}
     if(k>=0){const v=parseFloat(c[k].textContent), awake=c[1].textContent.trim()!=='미각성';
       const lo=12, hi=awake?30:25, out=v<lo||v>hi;
       c[k].insertAdjacentHTML('beforeend',`<span class="bar" title="기준 ${lo}~${hi}%"><span class="band" style="left:${lo/40*100}%;width:${(hi-lo)/40*100}%"></span><span class="v${out?' out':''}" style="left:calc(${Math.min(v,40)/40*100}% - 1px)"></span></span>`);}

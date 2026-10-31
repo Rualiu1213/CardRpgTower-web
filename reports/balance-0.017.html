@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Seal 밸런스 조정 0.017</title>
+<style>
+:root{--bg:#0f0c0a;--panel:#1a1512;--line:#3a2f26;--text:#eae2d6;--muted:#a89a88;--gold:#e0b968;--good:#7cc48a;--bad:#e07a6a;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.65 "Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:24px 16px 64px}
+.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.top a{color:var(--gold);text-decoration:none}
+h1{font-size:26px;color:var(--gold);margin:16px 0 4px;letter-spacing:.5px}
+h1+p{color:var(--muted);margin:0 0 12px}
+h2{font-size:20px;color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:6px;margin:40px 0 12px}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 8px}
+.toc a{font-size:13px;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;text-decoration:none}
+.toc a:hover{border-color:var(--gold)}
+.tw{overflow-x:auto;margin:12px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;white-space:nowrap}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{background:var(--panel);color:var(--muted);font-weight:600;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+tr:hover td{background:#211a15}
+td[style*="right"],th[style*="right"]{font-variant-numeric:tabular-nums}
+td.ok{color:var(--good)} td.ng{color:var(--bad);white-space:normal;min-width:180px}
+td.wrap{white-space:normal;min-width:220px}
+.bar{position:relative;display:inline-block;width:110px;height:8px;background:#2a221c;border-radius:4px;margin-left:8px;vertical-align:middle}
+.bar .band{position:absolute;top:0;bottom:0;background:rgba(124,196,138,.22)}
+.bar .v{position:absolute;top:-2px;width:3px;height:12px;border-radius:2px;background:var(--gold)}
+.bar .v.out{background:var(--bad)}
+ul{padding-left:20px} li{margin:4px 0}
+strong{color:#fff}
+footer{margin-top:48px;color:var(--muted);font-size:12px}
+</style></head><body><main>
+<div class="top"><a href="../">← 게임으로</a><a href="./">보고서 목록</a></div>
+<h1 id="black-seal-밸런스-조정-보고서-0017">Black Seal 밸런스 조정
+보고서 (0.017)</h1>
+<p>2026-10-31 · 코드 0.017(b7777a9) · 0.016 보고서의 남은 과제 작업 ·
+24조합 × 1000판 시뮬</p><nav class="toc"><a href="#요약">요약</a><a href="#스토리-돌파율">스토리 돌파율</a><a href="#어디서-죽는가">어디서 죽는가</a><a href="#바꾼-것">바꾼 것</a><a href="#시도했지만-안-쓴-것">시도했지만 안 쓴 것</a><a href="#다음-과제">다음 과제</a><a href="#새-시뮬-손잡이">새 시뮬 손잡이</a></nav>
+<h2 id="요약">요약</h2>
+<ul>
+<li>기준을 지키는 조합 17 → 21. 남은 3개: 음양사 4막 32.9%, 살수
+30.9%(오차 범위), 검마 3막이 미각성보다 0.8%p 낮음.</li>
+<li>1막 돌파율 범위 77.2~99.7% → 80.1~99.7%. 여검사 99.3 → 87.5, 검사
+77.2 → 80.1, 여마법사 78.3 → 82.8.</li>
+<li>여검사 4막 보스전 평균 16.8턴 → 13.3턴, 3막 보스 사망 38.7% →
+30.2%(직업 4000판 대비).</li>
+<li>에이전트 32.9% → 30.0%.</li>
+</ul>
+<h2 id="스토리-돌파율">스토리 돌파율</h2>
+<p>0.016과 같은 시드 2001~3000, 조합마다 1000판입니다. 각 칸은 그 막
+보스까지 이긴 비율(%)입니다.</p>
+<div class="tw"><table>
+<thead>
+<tr class="header">
+<th>직업</th>
+<th>갈래</th>
+<th style="text-align: right;">1막 돌파</th>
+<th style="text-align: right;">2막 돌파</th>
+<th style="text-align: right;">3막 돌파</th>
+<th style="text-align: right;">4막 완주</th>
+<th style="text-align: right;">0.016 4막</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>검사</td>
+<td>미각성</td>
+<td style="text-align: right;">80.1</td>
+<td style="text-align: right;">56.2</td>
+<td style="text-align: right;">35.2</td>
+<td style="text-align: right;">21.8</td>
+<td style="text-align: right;">20.3</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>검사</td>
+<td>마검사</td>
+<td style="text-align: right;">80.1</td>
+<td style="text-align: right;">67.6</td>
+<td style="text-align: right;">49.8</td>
+<td style="text-align: right;">25.6</td>
+<td style="text-align: right;">23.2</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>검사</td>
+<td>검선</td>
+<td style="text-align: right;">80.1</td>
+<td style="text-align: right;">61.5</td>
+<td style="text-align: right;">43.0</td>
+<td style="text-align: right;">22.3</td>
+<td style="text-align: right;">21.4</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>검사</td>
+<td>메카나이트</td>
+<td style="text-align: right;">80.1</td>
+<td style="text-align: right;">70.9</td>
+<td style="text-align: right;">51.5</td>
+<td style="text-align: right;">24.8</td>
+<td style="text-align: right;">22.3</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>마법사</td>
+<td>미각성</td>
+<td style="text-align: right;">84.4</td>
+<td style="text-align: right;">72.4</td>
+<td style="text-align: right;">48.7</td>
+<td style="text-align: right;">16.2</td>
+<td style="text-align: right;">16.6</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>마법사</td>
+<td>원소술사</td>
+<td style="text-align: right;">84.4</td>
+<td style="text-align: right;">77.8</td>
+<td style="text-align: right;">66.5</td>
+<td style="text-align: right;">18.1</td>
+<td style="text-align: right;">18.7</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>마법사</td>
+<td>음양사</td>
+<td style="text-align: right;">84.4</td>
+<td style="text-align: right;">74.2</td>
+<td style="text-align: right;">66.8</td>
+<td style="text-align: right;">32.9</td>
+<td style="text-align: right;">27.2</td>
+<td>4막 30% 초과 (2막은 해결)</td>
+</tr>
+<tr class="even">
+<td>마법사</td>
+<td>메카닉</td>
+<td style="text-align: right;">84.4</td>
+<td style="text-align: right;">75.5</td>
+<td style="text-align: right;">62.6</td>
+<td style="text-align: right;">25.1</td>
+<td style="text-align: right;">26.0</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>도적</td>
+<td>미각성</td>
+<td style="text-align: right;">96.0</td>
+<td style="text-align: right;">70.0</td>
+<td style="text-align: right;">60.0</td>
+<td style="text-align: right;">14.6</td>
+<td style="text-align: right;">14.6</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>도적</td>
+<td>암살자</td>
+<td style="text-align: right;">96.0</td>
+<td style="text-align: right;">81.5</td>
+<td style="text-align: right;">77.0</td>
+<td style="text-align: right;">26.4</td>
+<td style="text-align: right;">26.3</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>도적</td>
+<td>닌자</td>
+<td style="text-align: right;">96.0</td>
+<td style="text-align: right;">76.9</td>
+<td style="text-align: right;">67.8</td>
+<td style="text-align: right;">25.6</td>
+<td style="text-align: right;">25.8</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>도적</td>
+<td>에이전트</td>
+<td style="text-align: right;">96.0</td>
+<td style="text-align: right;">79.0</td>
+<td style="text-align: right;">70.9</td>
+<td style="text-align: right;">30.0</td>
+<td style="text-align: right;">32.9</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>여검사</td>
+<td>미각성</td>
+<td style="text-align: right;">87.5</td>
+<td style="text-align: right;">85.5</td>
+<td style="text-align: right;">53.8</td>
+<td style="text-align: right;">15.8</td>
+<td style="text-align: right;">18.4</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>여검사</td>
+<td>크루세이더</td>
+<td style="text-align: right;">87.5</td>
+<td style="text-align: right;">87.5</td>
+<td style="text-align: right;">58.5</td>
+<td style="text-align: right;">23.2</td>
+<td style="text-align: right;">26.7</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>여검사</td>
+<td>검마</td>
+<td style="text-align: right;">87.5</td>
+<td style="text-align: right;">85.6</td>
+<td style="text-align: right;">53.0</td>
+<td style="text-align: right;">30.2</td>
+<td style="text-align: right;">27.9</td>
+<td>3막 미각성보다 0.8 낮음</td>
+</tr>
+<tr class="even">
+<td>여검사</td>
+<td>광검사</td>
+<td style="text-align: right;">87.5</td>
+<td style="text-align: right;">86.3</td>
+<td style="text-align: right;">57.7</td>
+<td style="text-align: right;">27.0</td>
+<td style="text-align: right;">23.4</td>
+<td>OK (3막 해결)</td>
+</tr>
+<tr class="odd">
+<td>여도적</td>
+<td>미각성</td>
+<td style="text-align: right;">99.7</td>
+<td style="text-align: right;">97.0</td>
+<td style="text-align: right;">59.3</td>
+<td style="text-align: right;">21.5</td>
+<td style="text-align: right;">21.9</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>여도적</td>
+<td>로그</td>
+<td style="text-align: right;">99.7</td>
+<td style="text-align: right;">99.2</td>
+<td style="text-align: right;">71.9</td>
+<td style="text-align: right;">26.6</td>
+<td style="text-align: right;">26.8</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>여도적</td>
+<td>살수</td>
+<td style="text-align: right;">99.7</td>
+<td style="text-align: right;">99.6</td>
+<td style="text-align: right;">81.3</td>
+<td style="text-align: right;">30.9</td>
+<td style="text-align: right;">31.1</td>
+<td>4막 30% 경계</td>
+</tr>
+<tr class="even">
+<td>여도적</td>
+<td>해결사</td>
+<td style="text-align: right;">99.7</td>
+<td style="text-align: right;">97.1</td>
+<td style="text-align: right;">69.8</td>
+<td style="text-align: right;">29.3</td>
+<td style="text-align: right;">29.4</td>
+<td>OK</td>
+</tr>
+<tr class="odd">
+<td>여마법사</td>
+<td>미각성</td>
+<td style="text-align: right;">82.8</td>
+<td style="text-align: right;">72.6</td>
+<td style="text-align: right;">49.0</td>
+<td style="text-align: right;">14.7</td>
+<td style="text-align: right;">13.9</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>여마법사</td>
+<td>소서리스</td>
+<td style="text-align: right;">82.8</td>
+<td style="text-align: right;">79.4</td>
+<td style="text-align: right;">50.6</td>
+<td style="text-align: right;">21.5</td>
+<td style="text-align: right;">18.8</td>
+<td>OK (3막 해결)</td>
+</tr>
+<tr class="odd">
+<td>여마법사</td>
+<td>주술사</td>
+<td style="text-align: right;">82.8</td>
+<td style="text-align: right;">74.1</td>
+<td style="text-align: right;">56.1</td>
+<td style="text-align: right;">29.7</td>
+<td style="text-align: right;">28.7</td>
+<td>OK</td>
+</tr>
+<tr class="even">
+<td>여마법사</td>
+<td>엔지니어</td>
+<td style="text-align: right;">82.8</td>
+<td style="text-align: right;">73.3</td>
+<td style="text-align: right;">58.2</td>
+<td style="text-align: right;">19.9</td>
+<td style="text-align: right;">18.9</td>
+<td>OK</td>
+</tr>
+</tbody>
+</table></div>
+<p>여도적은 여도적 카드·규칙을 바꾸지 않아 0.016과 1막 이후 수치가 거의
+같다(1막 적 체력만 바뀜).</p>
+<h2 id="어디서-죽는가">어디서 죽는가</h2>
+<p>직업별 4000판(갈래 4개 합계) 가운데 그곳에서 끝난 비율(%)과, 이긴
+보스전의 평균 턴 수입니다. 괄호는 0.016 값입니다.</p>
+<div class="tw"><table>
+<thead>
+<tr class="header">
+<th>직업</th>
+<th style="text-align: right;">1막</th>
+<th style="text-align: right;">2막</th>
+<th style="text-align: right;">3막 보스</th>
+<th style="text-align: right;">4막 일반·엘리트</th>
+<th style="text-align: right;">4막 보스</th>
+<th style="text-align: right;">4막 보스 턴</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>검사</td>
+<td style="text-align: right;">19.9 (22.8)</td>
+<td style="text-align: right;">16.1</td>
+<td style="text-align: right;">18.3</td>
+<td style="text-align: right;">6.5</td>
+<td style="text-align: right;">14.8</td>
+<td style="text-align: right;">5.7</td>
+</tr>
+<tr class="even">
+<td>마법사</td>
+<td style="text-align: right;">15.6 (13.4)</td>
+<td style="text-align: right;">9.4</td>
+<td style="text-align: right;">11.9</td>
+<td style="text-align: right;">12.2</td>
+<td style="text-align: right;">25.9</td>
+<td style="text-align: right;">8.1</td>
+</tr>
+<tr class="odd">
+<td>도적</td>
+<td style="text-align: right;">4.0 (2.9)</td>
+<td style="text-align: right;">19.1</td>
+<td style="text-align: right;">4.6</td>
+<td style="text-align: right;">36.4</td>
+<td style="text-align: right;">8.4</td>
+<td style="text-align: right;">6.2</td>
+</tr>
+<tr class="even">
+<td>여검사</td>
+<td style="text-align: right;">12.5 (0.7)</td>
+<td style="text-align: right;">1.3</td>
+<td style="text-align: right;">30.2 (38.7)</td>
+<td style="text-align: right;">1.6</td>
+<td style="text-align: right;">30.1 (34.2)</td>
+<td style="text-align: right;">13.3 (16.8)</td>
+</tr>
+<tr class="odd">
+<td>여도적</td>
+<td style="text-align: right;">0.3 (0.3)</td>
+<td style="text-align: right;">1.5</td>
+<td style="text-align: right;">27.5</td>
+<td style="text-align: right;">5.0</td>
+<td style="text-align: right;">38.5</td>
+<td style="text-align: right;">9.3</td>
+</tr>
+<tr class="even">
+<td>여마법사</td>
+<td style="text-align: right;">17.2 (21.7)</td>
+<td style="text-align: right;">8.0</td>
+<td style="text-align: right;">21.0</td>
+<td style="text-align: right;">6.2</td>
+<td style="text-align: right;">25.8</td>
+<td style="text-align: right;">7.6</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="바꾼-것">바꾼 것</h2>
+<div class="tw"><table>
+<thead>
+<tr class="header">
+<th>과제</th>
+<th>바꾼 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1막 난이도</td>
+<td>1막 보스 문지기 체력 170 → 204, 엘리트 기사 92 → 106, 키메라 84 →
+97. 검사 베기 피해 6 → 7, 여마법사 마탄 6 → 7·중마탄 14 → 16</td>
+</tr>
+<tr class="even">
+<td>여검사 보스전</td>
+<td>여검사 기본 카드 피해 약 ×1.2, 방어도 약 ×0.75(31장, 문서 참고).
+광검사 카드 약 ×0.8. 크루세이더 턴 끝 방어도 가드×2 → 가드 수만큼.
+천마혈참 30 → 18</td>
+</tr>
+<tr class="odd">
+<td>에이전트</td>
+<td>은신 받는 피해 감소 10% → 5%(Combat.StealthTakenMult 0.95). 소음
+권총 7 → 6, 저격 10 → 9, 전술 장갑 방어도 6 → 5, 관통탄 6 → 5, 전술 핵
+14 → 13. 시작 카드 광학 위장은 방어도 8 유지</td>
+</tr>
+<tr class="even">
+<td>각성 직후 약한 막</td>
+<td>전투 시작 자원(Combat.AwakeningStart): 음양사 비전력 3, 소서리스
+메모라이즈 1, 검마 광기 3, 주술사 부적 3. 검마 받는 피해 +2 → +1, 주박
+주는 피해 -X/2 → -X×0.35</td>
+</tr>
+<tr class="odd">
+<td>도적 4막 반격</td>
+<td>바꾸지 않음. 4막 반격 4를 3·2로 내려 봐도 도적 4막 완주율이
+그대로(16.5 → 16.8·15.0%)라 원인이 아니었다. 도적 미각성 4막 14.6%는
+기준 안</td>
+</tr>
+<tr class="even">
+<td>살수</td>
+<td>바꾸지 않음(0.016 판단 유지, 사람 플레이로 확인)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="시도했지만-안-쓴-것">시도했지만 안 쓴 것</h2>
+<ul>
+<li>1막 일반 적 체력·피해 +10%: 검사·여마법사 1막이 41%로 무너짐.</li>
+<li>검사 막기 5 → 6: 1막 89%까지 오르지만 미각성 4막 31%로 넘치고
+각성보다 세짐. 덱 편성 점수에 민감해 6/6은 오히려 67%.</li>
+<li>음양사: 시작 부적(수호 1장)은 4막 58%로 폭주. 시작 비전력은 3이든
+7이든 4막 32~33%. 천라지망 발동 횟수·부적 수치·음양사 카드를 내려도
+4막이 내려가지 않음(시뮬이 음양사를 비전력 마법사처럼 굴림). 2막 해결을
+우선했다.</li>
+<li>해결사 시작 지원 5·10: 2막 차이는 원래 0.1%p라 효과 없이 4막만
+32%.</li>
+<li>에이전트 궤도 저격 30 → 25·20: 4막 거의 그대로(시뮬에서 필살기
+기여가 작음). 코드에는 Combat.OrbitalStrikeDamage로 남김.</li>
+</ul>
+<h2 id="다음-과제">다음 과제</h2>
+<ul>
+<li>음양사 4막 32.9%: 시뮬이 부적보다 비전력 위주로 굴려 부적 쪽 하향이
+듣지 않습니다. 사람 플레이로 부적 운용을 본 뒤 정하는 것을
+권합니다.</li>
+<li>도적·여도적 1막 96~99.7%: 적 체력을 올려도 순간 화력이 커서 거의
+그대로입니다. 1막 적에 방어도·반격을 섞는 식의 패턴 변화가
+필요합니다.</li>
+<li>살수 30.9%, 검마 3막 -0.8%p는 1000판 오차(±1.5%p) 안입니다.</li>
+</ul>
+<h2 id="새-시뮬-손잡이">새 시뮬 손잡이</h2>
+<ul>
+<li><code>SIM_AWSTART="oy=3;gm=3"</code>: 각성 갈래별 전투 시작
+자원.</li>
+<li><code>SIM_ENEMIES=path</code>: 다른 enemies.json으로 돌리기.</li>
+<li><code>SIM_F</code>로 바꿀 수 있는 값 추가:
+<code>OrbitalStrikeDamage</code>, <code>OnmyojiFinisherFires</code>,
+<code>TalismanBlock</code>, <code>TalismanFire</code>.</li>
+<li>검증 결과 <code>v5-validation/&lt;직업&gt;/summary.csv</code>.</li>
+</ul>
+
+<footer>Rualiu Games · Black Seal · 시뮬 Tools/RelicSim campaign, 시드 2001~3000</footer>
+</main>
+<script>
+document.querySelectorAll('table').forEach(t=>{
+  const hs=[...t.querySelectorAll('th')].map(h=>h.textContent.trim());
+  const j=hs.indexOf('판정'), k=hs.indexOf('4막 완주');
+  t.querySelectorAll('tbody tr').forEach(r=>{
+    const c=r.children;
+    if(j>=0){const d=c[j];d.classList.add(d.textContent.trim().startsWith('OK')?'ok':'ng');}
+    if(k>=0){const v=parseFloat(c[k].textContent), awake=c[1].textContent.trim()!=='미각성';
+      const lo=12, hi=awake?30:25, out=v<lo||v>hi;
+      c[k].insertAdjacentHTML('beforeend',`<span class="bar" title="기준 ${lo}~${hi}%"><span class="band" style="left:${lo/40*100}%;width:${(hi-lo)/40*100}%"></span><span class="v${out?' out':''}" style="left:calc(${Math.min(v,40)/40*100}% - 1px)"></span></span>`);}
+    c.length&&[...c].forEach(d=>{if(d.textContent.length>40)d.classList.add('wrap')});
+  });
+});
+</script></body></html>
